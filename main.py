@@ -1,8 +1,10 @@
-import modules.dna_rna_tools as drt
-import modules.filter_fastq as ff
+from modules.dna_rna_tools import (
+    is_nucleic_acid, transcribe, reverse,
+    complement, reverse_complement
+)
+from modules.filter_fastq import filter_fastq, MAX_GC, MAX_LENGTH
 from modules.io_fastq import read_fastq, write_fastq
-from typing import Dict, Tuple, List
-
+from typing import List
 
 def run_dna_rna_tools(*args: str) -> List[str]:
     """
