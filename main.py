@@ -2,10 +2,10 @@ import sys
 
 import modules.dna_rna_tools as drt
 import modules.filter_fastq as ff
-from typing import Dict, Tuple, Union
+from typing import Dict, Tuple, List
 
 
-def run_dna_rna_tools(*args):
+def run_dna_rna_tools(*args: str) -> List[str]:
     """
     Check input format. Args must be 'str' type, positional.
     The last arg must be procedure.
