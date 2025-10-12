@@ -35,6 +35,9 @@ def run_dna_rna_tools(*args: str) -> List[str]:
     for seq in sequences:
         if procedure not in procedures:
             raise KeyError(f"Unknown procedure: {tuple(procedures.keys())}")
+        if procedure != "is_nucleic_acid":
+            if not is_nucleic_acid(seq):
+                raise ValueError(f"Wrong or ambiguous sequence: {seq}")
         result = procedures[procedure](seq)
         results.append(result)
 
