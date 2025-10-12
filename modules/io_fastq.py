@@ -26,6 +26,7 @@ def write_fastq(sequences: Iterator[Tuple[str, str, str]], output_path: str) -> 
     Make folder if it doesn't exist.
     Overwrite is disabled.
     """
+    output_path = os.path.join("filtered", output_path)
     folder = os.path.dirname(output_path)
     if folder and not os.path.exists(folder):
         os.makedirs(folder)
