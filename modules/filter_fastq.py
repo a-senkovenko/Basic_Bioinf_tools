@@ -1,4 +1,4 @@
-from typing import Dict, Tuple, List
+from typing import Dict, List, Tuple, Iterator
 
 MAX_GC = 100.0
 MAX_LENGTH = 2**32
@@ -55,3 +55,26 @@ def quality_filter(
         for name, (_, qual) in seqs.items()
         if quality_score(qual) >= quality_threshold
     ]
+
+def filter_fastq(
+    seqs: Iterator[Tuple[str, str, str]],
+    gc_bounds: Tuple[float, float] = (0.0, MAX_GC),
+    length_bounds: Tuple[int, int] = (0, MAX_LENGTH),
+    quality_threshold: float = 0.0,
+) -> Iterator[Tuple[str, str, str]]:
+    """
+    Filter FASTQ sequences by GC content, length, and quality.
+    Uses iteration for fast filtration by lines in file.
+    Arguments:
+        seqs (Dict[str, Tuple[str, str]]): Dictionary of sequences
+        gc_bounds (Tuple[float, float]): GC composition (%)
+        length_bounds (Tuple[int, int]): length for filtration
+        quality_threshold (float): Phred33 scale quality, default = 0
+    Returns:
+        Iterator[Tuple[str, str, str]] for function run_filter_fastq()
+    """
+    for name, seq, qual in seqs:
+        if (length_filter(seq, length_bounds) and
+            gc_filter(seq, gc_bounds) and
+            quality_filter(qual, quality_threshold)):
+            yield (name, seq, qual)
