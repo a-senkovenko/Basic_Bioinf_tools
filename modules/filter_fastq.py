@@ -8,7 +8,8 @@ def compute_gc_content(sequence: str) -> float:
     """Return GC percentage of given sequence."""
     if not sequence:
         return 0.0
-    gc_count = sum(1 for base in sequence.upper() if base in "GC")
+    sequence = sequence.upper()
+    gc_count = sequence.count("G")+sequence.count("C")
     return (gc_count / len(sequence)) * 100
 
 
