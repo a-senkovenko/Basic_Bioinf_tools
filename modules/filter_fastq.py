@@ -1,4 +1,4 @@
-from typing import Dict, Tuple, List
+from typing import Dict, List, Tuple, Iterator
 
 MAX_GC = 100.0
 MAX_LENGTH = 2**32
@@ -8,7 +8,8 @@ def compute_gc_content(sequence: str) -> float:
     """Return GC percentage of given sequence."""
     if not sequence:
         return 0.0
-    gc_count = sum(1 for base in sequence.upper() if base in "GC")
+    sequence = sequence.upper()
+    gc_count = sequence.count("G") + sequence.count("C")
     return (gc_count / len(sequence)) * 100
 
 
@@ -25,11 +26,8 @@ def length_filter(
 ) -> List[str]:
     """Return names of reads filtered by length."""
     min_len, max_len = length_bounds
-    return [
-        name
-        for name, (seq, _) in seqs.items()
-        if min_len <= len(seq) <= max_len
-        ]
+    return [name for name, (seq, _) in seqs.items()
+            if min_len <= len(seq) <= max_len]
 
 
 def gc_filter(
@@ -54,3 +52,35 @@ def quality_filter(
         for name, (_, qual) in seqs.items()
         if quality_score(qual) >= quality_threshold
     ]
+
+
+def filter_fastq(
+    seqs: Iterator[Tuple[str, str, str]],
+    gc_bounds: Tuple[float, float] | float = (0.0, MAX_GC),
+    length_bounds: Tuple[int, int] | int = (0, MAX_LENGTH),
+    quality_threshold: float = 0.0,
+) -> Iterator[Tuple[str, str, str]]:
+    """
+    Filter FASTQ sequences by GC content, length, and quality.
+    Uses iteration for fast filtration by lines in file.
+    Arguments:
+        seqs (Dict[str, Tuple[str, str]]): Dictionary of sequences
+        gc_bounds (Tuple[float, float]): GC composition (%)
+        length_bounds (Tuple[int, int]): length for filtration
+        quality_threshold (float): Phred33 scale quality, default = 0
+    Returns:
+        Iterator[Tuple[str, str, str]] for function run_filter_fastq()
+    """
+    if isinstance(gc_bounds, (int, float)):
+        gc_bounds = (0.0, float(gc_bounds))
+
+    if isinstance(length_bounds, int):
+        length_bounds = (0, length_bounds)
+
+    for header, seq, qual in seqs:
+        if (
+            length_filter({header: (seq, qual)}, length_bounds)
+            and gc_filter({header: (seq, qual)}, gc_bounds)
+            and quality_filter({header: (seq, qual)}, quality_threshold)
+        ):
+            yield (header, seq, qual)

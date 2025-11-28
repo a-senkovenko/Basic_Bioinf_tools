@@ -30,10 +30,6 @@ def transcribe(seq: str) -> str:
     Returns:
         seq (str): "ATGC" -> "AUGC"; "AUGC" -> "ATGC".
     """
-    if not is_nucleic_acid(seq):
-        raise ValueError(f"Wrong sequence: {seq}")
-    if "T" in seq.upper() and "U" in seq.upper():
-        raise ValueError(f"Ambiguous sequence: contains both T and U: {seq}")
 
     return "".join(TRANS_MAP.get(nucl, nucl) for nucl in seq)
 
@@ -47,8 +43,6 @@ def reverse(seq: str) -> str:
     Returns:
         seq (str): "ATGC" -> "CGTA".
     """
-    if not is_nucleic_acid(seq):
-        raise ValueError(f"Wrong sequence: {seq}")
 
     return seq[::-1]
 
@@ -63,10 +57,6 @@ def complement(seq: str) -> str:
     Returns:
         seq (str): "ATGC" -> "TACG"; "AUGC" -> "UACG".
     """
-    if not is_nucleic_acid(seq):
-        raise ValueError(f"Wrong sequence: {seq}")
-    if "T" in seq.upper() and "U" in seq.upper():
-        raise ValueError(f"Ambiguous sequence: contains both T and U: {seq}")
 
     complement_map = DNA_COMPLEMENT if "T" in seq.upper() else RNA_COMPLEMENT
     return "".join(complement_map.get(nucl, nucl) for nucl in seq)

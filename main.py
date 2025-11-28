@@ -1,11 +1,16 @@
-import sys
+from modules.dna_rna_tools import (
+    is_nucleic_acid,
+    transcribe,
+    reverse,
+    complement,
+    reverse_complement,
+)
+from modules.filter_fastq import filter_fastq, MAX_GC, MAX_LENGTH
+from modules.io_fastq import read_fastq, write_fastq
+from typing import List
 
-import modules.dna_rna_tools as drt
-import modules.filter_fastq as ff
-from typing import Dict, Tuple, Union
 
-
-def run_dna_rna_tools(*args):
+def run_dna_rna_tools(*args: str) -> List[str]:
     """
     Check input format. Args must be 'str' type, positional.
     The last arg must be procedure.
@@ -35,6 +40,9 @@ def run_dna_rna_tools(*args):
     for seq in sequences:
         if procedure not in procedures:
             raise KeyError(f"Unknown procedure: {tuple(procedures.keys())}")
+        if procedure != "is_nucleic_acid":
+            if not is_nucleic_acid(seq):
+                raise ValueError(f"Wrong or ambiguous sequence: {seq}")
         result = procedures[procedure](seq)
         results.append(result)
 
@@ -43,30 +51,29 @@ def run_dna_rna_tools(*args):
     return results
 
 
-def filter_fastq(
-    seqs: Dict[str, Tuple[str, str]],
-    gc_bounds: Tuple[float, float] = (0.0, MAX_GC),
-    length_bounds: Tuple[int, int] = (0, MAX_LENGTH),
-    quality_threshold: float = 0.0,
-) -> Dict[str, Tuple[str, str]]:
+def run_filter_fastq(
+    input_fastq: str,
+    output_fastq: str,
+    gc_bounds=(0.0, MAX_GC),
+    length_bounds=(0, MAX_LENGTH),
+    quality_threshold=0.0,
+) -> None:
     """
-    Filter FASTQ sequences by GC content, length, and quality.
-    Check type of 'seqs' argument.
-    Wrong 'seqs': TypeError.
+    Fast filter FASTQ sequences by GC content, length, and quality.
+    Uses iteration for fast filtration by lines in file.
     Arguments:
-        seqs (Dict[str, Tuple[str, str]]): Dictionary of sequences
+        input_fastq (str): name of input file
+        output_fastq (str): name of output file
         gc_bounds (Tuple[float, float]): GC composition (%)
         length_bounds (Tuple[int, int]): length for filtration
         quality_threshold (float): Phred33 scale quality, default = 0
     Returns:
-        result (Dict[str, Tuple[str, str]]): Filtered sequences
+        None. Write filtered sequences to file with name 'output_fastq'
     """
-    length_pass = set(length_filter(seqs, length_bounds))
-    gc_pass = set(gc_filter(seqs, gc_bounds))
-    quality_pass = set(quality_filter(seqs, quality_threshold))
-
-    valid_names = length_pass & gc_pass & quality_pass
-
-    result = {name: seqs[name] for name in valid_names}
-
-    return result
+    filtered = filter_fastq(
+        read_fastq(input_fastq),
+        gc_bounds=gc_bounds,
+        length_bounds=length_bounds,
+        quality_threshold=quality_threshold,
+    )
+    write_fastq(filtered, output_fastq)
