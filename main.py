@@ -1,10 +1,14 @@
 from modules.dna_rna_tools import (
-    is_nucleic_acid, transcribe, reverse,
-    complement, reverse_complement
+    is_nucleic_acid,
+    transcribe,
+    reverse,
+    complement,
+    reverse_complement,
 )
 from modules.filter_fastq import filter_fastq, MAX_GC, MAX_LENGTH
 from modules.io_fastq import read_fastq, write_fastq
 from typing import List
+
 
 def run_dna_rna_tools(*args: str) -> List[str]:
     """
@@ -46,9 +50,14 @@ def run_dna_rna_tools(*args: str) -> List[str]:
         return results[0]
     return results
 
-def run_filter_fastq(input_fastq: str, output_fastq: str,
-                           gc_bounds=(0.0, MAX_GC), length_bounds=(0, MAX_LENGTH),
-                           quality_threshold=0.0) -> None:
+
+def run_filter_fastq(
+    input_fastq: str,
+    output_fastq: str,
+    gc_bounds=(0.0, MAX_GC),
+    length_bounds=(0, MAX_LENGTH),
+    quality_threshold=0.0,
+) -> None:
     """
     Fast filter FASTQ sequences by GC content, length, and quality.
     Uses iteration for fast filtration by lines in file.
@@ -65,6 +74,6 @@ def run_filter_fastq(input_fastq: str, output_fastq: str,
         read_fastq(input_fastq),
         gc_bounds=gc_bounds,
         length_bounds=length_bounds,
-        quality_threshold=quality_threshold
+        quality_threshold=quality_threshold,
     )
     write_fastq(filtered, output_fastq)

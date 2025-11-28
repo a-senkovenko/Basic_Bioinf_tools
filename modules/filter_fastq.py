@@ -9,7 +9,7 @@ def compute_gc_content(sequence: str) -> float:
     if not sequence:
         return 0.0
     sequence = sequence.upper()
-    gc_count = sequence.count("G")+sequence.count("C")
+    gc_count = sequence.count("G") + sequence.count("C")
     return (gc_count / len(sequence)) * 100
 
 
@@ -26,11 +26,8 @@ def length_filter(
 ) -> List[str]:
     """Return names of reads filtered by length."""
     min_len, max_len = length_bounds
-    return [
-        name
-        for name, (seq, _) in seqs.items()
-        if min_len <= len(seq) <= max_len
-        ]
+    return [name for name, (seq, _) in seqs.items()
+            if min_len <= len(seq) <= max_len]
 
 
 def gc_filter(
@@ -56,10 +53,11 @@ def quality_filter(
         if quality_score(qual) >= quality_threshold
     ]
 
+
 def filter_fastq(
     seqs: Iterator[Tuple[str, str, str]],
-    gc_bounds: Tuple[float, float] = (0.0, MAX_GC),
-    length_bounds: Tuple[int, int] = (0, MAX_LENGTH),
+    gc_bounds: Tuple[float, float] | float = (0.0, MAX_GC),
+    length_bounds: Tuple[int, int] | int = (0, MAX_LENGTH),
     quality_threshold: float = 0.0,
 ) -> Iterator[Tuple[str, str, str]]:
     """
@@ -73,8 +71,16 @@ def filter_fastq(
     Returns:
         Iterator[Tuple[str, str, str]] for function run_filter_fastq()
     """
-    for name, seq, qual in seqs:
-        if (length_filter(seq, length_bounds) and
-            gc_filter(seq, gc_bounds) and
-            quality_filter(qual, quality_threshold)):
-            yield (name, seq, qual)
+    if isinstance(gc_bounds, (int, float)):
+        gc_bounds = (0.0, float(gc_bounds))
+
+    if isinstance(length_bounds, int):
+        length_bounds = (0, length_bounds)
+
+    for header, seq, qual in seqs:
+        if (
+            length_filter({header: (seq, qual)}, length_bounds)
+            and gc_filter({header: (seq, qual)}, gc_bounds)
+            and quality_filter({header: (seq, qual)}, quality_threshold)
+        ):
+            yield (header, seq, qual)
